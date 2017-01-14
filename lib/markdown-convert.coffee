@@ -8,6 +8,7 @@ plantumlAPI = require './puml'
 codeChunkAPI = require './code-chunk'
 {svgAsPngUri} = require '../dependencies/save-svg-as-png/save-svg-as-png.js'
 processGraphs = require './process-graphs'
+encrypt = require './encrypt'
 CACHE = require './cache'
 
 # TODO: refactor this file
@@ -104,7 +105,7 @@ markdownConvert = (text, {projectDirectoryPath, rootDirectoryPath}, config={})->
   imageDir.create().then (flag)->
 
     # mermaid / viz / wavedrom graph
-    processGraphs text, {rootDirectoryPath, projectDirectoryPath, imageDirectoryPath, imageFilePrefix: outputFilePath, useAbsoluteImagePath}, (text, imagePaths=[])->
+    processGraphs text, {rootDirectoryPath, projectDirectoryPath, imageDirectoryPath, imageFilePrefix: encrypt(outputFilePath), useAbsoluteImagePath}, (text, imagePaths=[])->
       fs.writeFile outputFilePath, text, (err)->
         return atom.notifications.addError('failed to generate markdown') if err
         atom.notifications.addInfo("File #{path.basename(outputFilePath)} was created", detail: "path: #{outputFilePath}")
