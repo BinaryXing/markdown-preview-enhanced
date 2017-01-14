@@ -37,4 +37,4 @@ class Hook
   dispose: ->
     @subcriptions = null
 
-module.exports = Hook
+module.exports = {Hook, singletonHook: new Hook()}

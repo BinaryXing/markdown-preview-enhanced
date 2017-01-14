@@ -1,9 +1,12 @@
 path = require 'path'
+{processFrontMatter} = require './md'
+
+pandocConvert = require './pandoc-convert'
 
 getProjectDirectoryPath = (editor)->
   return '' if !editor
 
-  editorPath = @editor.getPath()
+  editorPath = editor.getPath()
   projectDirectories = atom.project.rootDirectories
   for projectDirectory in projectDirectories
     if (projectDirectory.contains(editorPath)) # editor belongs to this project
@@ -28,7 +31,8 @@ exportToDiskForFile = ({filePath, rootDirectoryPath, projectDirectoryPath})->
   content = fs.readFile filePath, {encoding: 'utf-8'}, (err, content)->
     return if err
     content = content.trim()
-    {data} = @processFrontMatter(@editor.getText())
+    {data} = processFrontMatter(content)
+    data = data or {}
     if !content.startsWith('---\n')
       return
     else
@@ -36,15 +40,39 @@ exportToDiskForFile = ({filePath, rootDirectoryPath, projectDirectoryPath})->
       content = content.slice(end+4)
 
     # pandoc
+    # check docs/advanced-export.md
+    if data.output
+      pandocConvert content, {rootDirectoryPath, projectDirectoryPath, sourceFilePath: filePath}, data, (err, outputFilePath)->
+        if err
+          return atom.notifications.addError 'pandoc error', detail: err
+        atom.notifications.addInfo "File #{path.basename(outputFilePath)} was created", detail: "path: #{outputFilePath}"
+
+    # html
+    ###
+    html:
+      path: output.md
+      cdn: true
+    ###
+    
 
     # phantomjs
+    ###
+    phantomjs:
+      path
+      format
+      orientation
+      margin
+      header
+      footer
+    ###
+
 
     # ebook
 
-    # presentation, not supported yet
+    # presentation, only .html export is supported for now
 
     # markdown
-    # TODO: append front matter 
+    # TODO: append front matter
 
 exportAllToDisk = ()->
   # TODO: to be implemented

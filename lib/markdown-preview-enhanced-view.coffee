@@ -1603,7 +1603,7 @@ module.exports = config || {}
       end = content.indexOf('---\n', 4)
       content = content.slice(end+4)
 
-    pandocConvert content, this, data, (err, outputFilePath)->
+    pandocConvert content, {@rootDirectoryPath, @projectDirectoryPath, sourceFilePath: @editor.getPath()}, data, (err, outputFilePath)->
       if err
         return atom.notifications.addError 'pandoc error', detail: err
       atom.notifications.addInfo "File #{path.basename(outputFilePath)} was created", detail: "path: #{outputFilePath}"

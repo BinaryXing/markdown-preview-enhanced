@@ -1,7 +1,7 @@
 {CompositeDisposable, Emitter, Directory, File} = require 'atom'
 path = require 'path'
 {getReplacedTextEditorStyles} = require './style'
-Hook = require './hook'
+{Hook, singletonHook} = require './hook'
 {exportToDisk, exportAllToDisk} = require './exporter'
 
 module.exports = MarkdownPreviewEnhanced =
@@ -17,7 +17,7 @@ module.exports = MarkdownPreviewEnhanced =
     @subscriptions = new CompositeDisposable
 
     @emitter = new Emitter
-    @hook = new Hook
+    @hook = singletonHook
 
     # file extensions?
     @fileExtensions = atom.config.get('markdown-preview-enhanced.fileExtension').split(',').map((x)->x.trim()) or ['.md', '.mmark', '.markdown']

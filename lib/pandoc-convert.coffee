@@ -90,8 +90,8 @@ processOutputConfig = (config, args)->
   if config['template']
     args.push('--template=' + config['template'])
 
-loadOutputYAML = (md, config)->
-  yamlPath = path.resolve(md.rootDirectoryPath, '_output.yaml')
+loadOutputYAML = (rootDirectoryPath, config)->
+  yamlPath = path.resolve(rootDirectoryPath, '_output.yaml')
   try
     yaml = fs.readFileSync yamlPath
   catch error
@@ -182,9 +182,11 @@ processPaths = (text, rootDirectoryPath, projectDirectoryPath)->
 ###
 callback(err, outputFilePath)
 ###
-pandocConvert = (text, md, config={}, callback=null)->
-  config = loadOutputYAML md, config
+pandocConvert = (text, {rootDirectoryPath, projectDirectoryPath, sourceFilePath}, config={}, callback=null)->
+  config = loadOutputYAML rootDirectoryPath, config
   args = []
+
+  sourceFilePath = sourceFilePath or 'uname.md'
 
   extension = null
   outputConfig = null
@@ -212,21 +214,21 @@ pandocConvert = (text, md, config={}, callback=null)->
   if outputConfig and outputConfig['path']
     outputFilePath = outputConfig['path']
     if outputFilePath.startsWith('/')
-      outputFilePath = path.resolve(md.projectDirectoryPath, '.'+outputFilePath)
+      outputFilePath = path.resolve(projectDirectoryPath, '.'+outputFilePath)
     else
-      outputFilePath = path.resolve(md.rootDirectoryPath, outputFilePath)
+      outputFilePath = path.resolve(rootDirectoryPath, outputFilePath)
 
     if documentFormat != 'custom_document' and path.extname(outputFilePath) != '.' + extension
       return atom.notifications.addError('Invalid extension for ' + documentFormat, detail: 'required .' + extension + ', but ' + path.extname(outputFilePath) + ' was provided.')
 
     args.push '-o', outputFilePath
   else
-    outputFilePath = md.editor.getPath()
+    outputFilePath = sourceFilePath
     outputFilePath = outputFilePath.slice(0, outputFilePath.length - path.extname(outputFilePath).length) + '.' + extension
     args.push '-o', outputFilePath
 
   # resolve paths in front-matter(yaml)
-  processConfigPaths config, md.rootDirectoryPath, md.projectDirectoryPath
+  processConfigPaths config, rootDirectoryPath, projectDirectoryPath
 
   if outputConfig
     processOutputConfig outputConfig, args
@@ -235,11 +237,11 @@ pandocConvert = (text, md, config={}, callback=null)->
   text = matter.stringify(text, config)
 
   # change link path to relative path
-  text = processPaths text, md.rootDirectoryPath, md.projectDirectoryPath
+  text = processPaths text, rootDirectoryPath, projectDirectoryPath
 
   # change working directory
   cwd = process.cwd()
-  process.chdir(md.rootDirectoryPath)
+  process.chdir(rootDirectoryPath)
 
   # citation
   if config['bibliography'] or config['references']
@@ -248,7 +250,7 @@ pandocConvert = (text, md, config={}, callback=null)->
   atom.notifications.addInfo('Your document is being prepared', detail: ':)')
 
   # mermaid / viz / wavedrom graph
-  processGraphs text, {rootDirectoryPath: md.rootDirectoryPath, projectDirectoryPath: md.projectDirectoryPath, imageDirectoryPath: md.rootDirectoryPath}, (text, imagePaths=[])->
+  processGraphs text, {rootDirectoryPath, projectDirectoryPath, imageDirectoryPath: rootDirectoryPath}, (text, imagePaths=[])->
     # console.log args.join(' ')
     #
     # pandoc will cause error if directory doesn't exist,
