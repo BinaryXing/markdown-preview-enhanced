@@ -12,7 +12,7 @@ encrypt = require './encrypt'
 CACHE = require './cache'
 
 # TODO: refactor this file
-# it has common functions as pandoc-wrapper.coffee
+# it has common functions as pandoc-convert.coffee
 
 processMath = (text)->
   text = text.replace(/\\\$/g, '#slash_dollarsign#')
@@ -70,7 +70,8 @@ processPaths = (text, rootDirectoryPath, projectDirectoryPath, useAbsoluteImageP
 
   text
 
-markdownConvert = (text, {projectDirectoryPath, rootDirectoryPath}, config={})->
+# callback(err, outputFilePath)
+markdownConvert = (text, {projectDirectoryPath, rootDirectoryPath}, config={}, callback=null)->
   if !config.path
     return atom.notifications.addError('{path} has to be specified')
 
@@ -88,7 +89,7 @@ markdownConvert = (text, {projectDirectoryPath, rootDirectoryPath}, config={})->
   useAbsoluteImagePath = config.absolute_image_path
 
   # change link path to project '/' path
-  # this is actually differnet from pandoc-wrapper.coffee
+  # this is actually differnet from pandoc-convert.coffee
   text = processPaths text, rootDirectoryPath, projectDirectoryPath, useAbsoluteImagePath
 
   text = processMath text
@@ -107,8 +108,6 @@ markdownConvert = (text, {projectDirectoryPath, rootDirectoryPath}, config={})->
     # mermaid / viz / wavedrom graph
     processGraphs text, {rootDirectoryPath, projectDirectoryPath, imageDirectoryPath, imageFilePrefix: encrypt(outputFilePath), useAbsoluteImagePath}, (text, imagePaths=[])->
       fs.writeFile outputFilePath, text, (err)->
-        return atom.notifications.addError('failed to generate markdown') if err
-        atom.notifications.addInfo("File #{path.basename(outputFilePath)} was created", detail: "path: #{outputFilePath}")
-
+        return callback(err, outputFilePath) if callback
 
 module.exports = markdownConvert

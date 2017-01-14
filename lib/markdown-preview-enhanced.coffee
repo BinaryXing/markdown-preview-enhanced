@@ -2,6 +2,7 @@
 path = require 'path'
 {getReplacedTextEditorStyles} = require './style'
 Hook = require './hook'
+{exportToDisk, exportAllToDisk} = require './exporter'
 
 module.exports = MarkdownPreviewEnhanced =
   preview: null,
@@ -42,7 +43,8 @@ module.exports = MarkdownPreviewEnhanced =
       'markdown-preview-enhanced:toggle-zen-mode': => @toggleZenMode()
       'markdown-preview-enhanced:run-code-chunk': => @runCodeChunk()
       'markdown-preview-enhanced:run-all-code-chunks': => @runAllCodeChunks()
-
+      'markdown-preview-enhanced:export-to-disk-(beta)': => exportToDisk()
+      'markdown-preview-enhanced:export-all-to-disk-(beta)': => exportAllToDisk()
 
     # when the preview is displayed
     # preview will display the content of pane that is activated

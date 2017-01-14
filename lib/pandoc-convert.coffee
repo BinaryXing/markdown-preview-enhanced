@@ -180,13 +180,9 @@ processPaths = (text, rootDirectoryPath, projectDirectoryPath)->
   text
 
 ###
-title
-author
-date
-path: ./
-output:
+callback(err, outputFilePath)
 ###
-pandocConvert = (text, md, config={})->
+pandocConvert = (text, md, config={}, callback=null)->
   config = loadOutputYAML md, config
   args = []
 
@@ -265,10 +261,7 @@ pandocConvert = (text, md, config={})->
           fs.unlink(p)
 
         process.chdir(cwd) # change cwd back
-        if err
-          atom.notifications.addError 'pandoc error', detail: err
-          return
-        atom.notifications.addInfo "File #{path.basename(outputFilePath)} was created", detail: "path: #{outputFilePath}"
+        return callback(err, outputFilePath) if callback
       program.stdin.end(text)
 
 module.exports = pandocConvert

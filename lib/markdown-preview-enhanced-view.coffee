@@ -11,7 +11,7 @@ katex = require 'katex'
 plantumlAPI = require './puml'
 ebookConvert = require './ebook-convert'
 {loadMathJax} = require './mathjax-wrapper'
-pandocConvert = require './pandoc-wrapper'
+pandocConvert = require './pandoc-convert'
 markdownConvert = require './markdown-convert'
 codeChunkAPI = require './code-chunk'
 CACHE = require './cache'
@@ -1603,7 +1603,10 @@ module.exports = config || {}
       end = content.indexOf('---\n', 4)
       content = content.slice(end+4)
 
-    pandocConvert content, this, data
+    pandocConvert content, this, data, (err, outputFilePath)->
+      if err
+        return atom.notifications.addError 'pandoc error', detail: err
+      atom.notifications.addInfo "File #{path.basename(outputFilePath)} was created", detail: "path: #{outputFilePath}"
 
   ###
   resolvePath: (src)->
@@ -1629,7 +1632,10 @@ module.exports = config || {}
     if !config.path
       config.path = path.basename(@editor.getPath()).replace(/\.md$/, '_.md')
 
-    markdownConvert content, {@projectDirectoryPath, @rootDirectoryPath}, config
+    markdownConvert content, {@projectDirectoryPath, @rootDirectoryPath}, config, (err, outputFilePath)=>
+      return atom.notifications.addError('failed to generate markdown') if err
+      atom.notifications.addInfo("File #{path.basename(outputFilePath)} was created", detail: "path: #{outputFilePath}")
+
 
   copyToClipboard: ->
     return false if not @editor
